@@ -1,0 +1,30 @@
+name: Publish
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  release:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - run: yarn install --immutable
+      - uses: iamchanii/yarn-changeset-action@master
+        with:
+          version: yarn changeset version
+          commit: "chore: version packages"
+          autoPublish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
