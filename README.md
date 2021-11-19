@@ -1,2 +1,3 @@
 # react-query-helper
-Use react-query more efficient, consistency
+
+A helper library to use react-query more efficient, consistency
