@@ -1,0 +1,6 @@
+.changeset
+.github
+.vscode
+.yarn
+dist
+.pnp.*

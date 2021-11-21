@@ -2,8 +2,8 @@ import type {
   QueryClient,
   UseQueryOptions,
   UseInfiniteQueryOptions,
-} from "react-query";
-import { useQuery, useInfiniteQuery } from "react-query";
+} from 'react-query';
+import { useQuery, useInfiniteQuery } from 'react-query';
 
 type Awaited<T> = T extends Promise<infer U> ? U : T;
 

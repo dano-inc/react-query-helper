@@ -1,1 +1,1 @@
-export * from "./QueryHelper";
+export * from './QueryHelper';

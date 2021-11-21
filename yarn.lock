@@ -4742,6 +4742,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prettier@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "prettier@npm:2.4.1"
+  bin:
+    prettier: bin-prettier.js
+  checksum: cc6830588b401b0d742862fe9c46bc9118204fb307c3abe0e49e95b35ed23629573807ffdf9cdd65289c252a0bb51fc0171437f6626ee36378dea80f0ee80b91
+  languageName: node
+  linkType: hard
+
 "pretty-format@npm:^27.0.0, pretty-format@npm:^27.3.1":
   version: 27.3.1
   resolution: "pretty-format@npm:27.3.1"
@@ -4852,6 +4861,7 @@ __metadata:
     "@swc/jest": 0.2.5
     "@types/jest": 27.0.3
     jest: 27.3.1
+    prettier: ^2.4.1
     react: 17.0.2
     react-dom: 17.0.2
     react-query: 3.33.1

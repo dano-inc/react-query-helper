@@ -25,10 +25,10 @@ $ npm install react-query-helper
 ### Basic ([CodeSandbox](https://codesandbox.io/s/basic-query-1dn5u?file=/src/App.tsx))
 
 ```tsx
-import { QueryHelper } from "react-query-helper";
-import type { User } from "./types";
+import { QueryHelper } from 'react-query-helper';
+import type { User } from './types';
 
-const getUserById = new QueryHelper(["user"], (id: number) => {
+const getUserById = new QueryHelper(['user'], (id: number) => {
   return fetch(`https://jsonplaceholder.typicode.com/users/${id}/`).then(
     (response) => response.json() as Promise<User>
   );
