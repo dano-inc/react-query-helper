@@ -17,7 +17,7 @@
     "dev": "tsup --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "prepack": "yarn build"
+    "release": "yarn build && npm publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.18.0",
