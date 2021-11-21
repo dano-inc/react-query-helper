@@ -24,7 +24,7 @@ jobs:
         with:
           version: yarn changeset version
           commit: "chore: version packages"
-          publish: yarn npm publish
+          publish: yarn changeset publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
