@@ -136,7 +136,7 @@ describe('setQueryData', () => {
 
 const getPostById = new QueryHelper(
   ['post'],
-  (id: number) => ({ id, title: `Post#${id}` } as Post)
+  (id?: number) => ({ id, title: `Post#${id}` } as Post)
 );
 
 describe('useQuery', () => {
@@ -151,6 +151,33 @@ describe('useQuery', () => {
           "queryKey": Array [
             "post",
             1,
+          ],
+        },
+      ]
+    `);
+  });
+
+  it('should use only baseQueryKey if argument is not defined or undefined', () => {
+    const useGetPostById = getPostById.createQuery();
+    useGetPostById();
+    useGetPostById(undefined);
+
+    expect((useQuery as jest.Mock).mock.calls[0]).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "queryFn": [Function],
+          "queryKey": Array [
+            "post",
+          ],
+        },
+      ]
+    `);
+    expect((useQuery as jest.Mock).mock.calls[1]).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "queryFn": [Function],
+          "queryKey": Array [
+            "post",
           ],
         },
       ]
@@ -214,6 +241,35 @@ describe('useInfiniteQuery', () => {
               "after": "",
               "first": 10,
             },
+          ],
+        },
+      ]
+    `);
+  });
+
+  it('should use only baseQueryKey if argument is not defined or undefined', () => {
+    const useGetPosts = getPosts.createInfiniteQuery();
+    useGetPosts();
+    useGetPosts(undefined);
+
+    expect((useInfiniteQuery as jest.Mock).mock.calls[0])
+      .toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "queryFn": [Function],
+          "queryKey": Array [
+            "posts",
+          ],
+        },
+      ]
+    `);
+    expect((useInfiniteQuery as jest.Mock).mock.calls[1])
+      .toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "queryFn": [Function],
+          "queryKey": Array [
+            "posts",
           ],
         },
       ]

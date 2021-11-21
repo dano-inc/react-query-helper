@@ -45,7 +45,9 @@ export class QueryHelper<
         options?: UseQueryOptions<TQueryFnResult>
       ]
     ) => {
-      const queryFnArgs = args.slice(0, this.queryFn.length) as TQueryFnArgs;
+      const queryFnArgs = args
+        .slice(0, this.queryFn.length)
+        .filter((arg) => arg !== undefined) as TQueryFnArgs;
       const options = args.slice(this.queryFn.length)[0] as
         | UseQueryOptions<TQueryFnResult>
         | undefined;
@@ -69,7 +71,9 @@ export class QueryHelper<
         options?: UseInfiniteQueryOptions<TQueryFnResult>
       ]
     ) => {
-      const queryFnArgs = args.slice(0, this.queryFn.length) as TQueryFnArgs;
+      const queryFnArgs = args
+        .slice(0, this.queryFn.length)
+        .filter((arg) => arg !== undefined) as TQueryFnArgs;
       const options = args.slice(this.queryFn.length)[0] as
         | UseInfiniteQueryOptions<TQueryFnResult>
         | undefined;
