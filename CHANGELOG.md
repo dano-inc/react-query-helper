@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.3
+
+### Patch Changes
+
+- 9005310: Add getQueryData, setQueryData method
+
 ## 0.0.2
 
 ### Patch Changes
