@@ -20,14 +20,11 @@ jobs:
         with:
           node-version: 16
       - run: yarn install --immutable
-      - run: npm config set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: changesets/action@master
         with:
           version: yarn changeset version
           commit: "chore: version packages"
-          publish: yarn release
+          publish: yarn publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
