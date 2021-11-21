@@ -14,7 +14,9 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "@changesets/cli": "^2.18.0",
