@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.5
+
+### Patch Changes
+
+- eeedb56: Fix ci automation #2
+
 ## 0.0.4
 
 ### Patch Changes
