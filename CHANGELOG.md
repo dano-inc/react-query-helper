@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.4
+
+### Patch Changes
+
+- e1d5001: fix ci publish automation
+
 ## 0.0.3
 
 ### Patch Changes
