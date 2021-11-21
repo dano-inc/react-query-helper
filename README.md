@@ -1,6 +1,6 @@
 # react-query-helper
 
-[![npm version](https://badge.fury.io/js/react-query-helper.svg)](https://badge.fury.io/js/react-query-helper) ![GitHub](https://img.shields.io/github/license/dano-inc/react-query-helper)
+[![npm version](https://badge.fury.io/js/react-query-helper.svg)](https://badge.fury.io/js/react-query-helper) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 A helper library to use react-query more efficient, consistency
 
