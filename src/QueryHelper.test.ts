@@ -25,6 +25,17 @@ type Post = { id: number; title: string };
 
 const getPosts = new QueryHelper(['posts'], () => [] as Post[]);
 
+it('should throw error if QueryHelper.setQueryClient not have been called', () => {
+  // NOTE: Is this right method?
+  QueryHelper.setQueryClient(null as any);
+
+  expect(() => getPosts.getQueryData()).toThrowErrorMatchingInlineSnapshot(
+    `"QueryClient is not set. Please call QueryHelper.setQueryClient static method."`
+  );
+
+  QueryHelper.setQueryClient(queryClient);
+});
+
 describe('getQueryData', () => {
   beforeEach(() => {
     queryClient.setQueryData(
