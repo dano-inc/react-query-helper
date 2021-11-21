@@ -4,8 +4,10 @@ import type {
   UseInfiniteQueryOptions,
 } from 'react-query';
 import { useQuery, useInfiniteQuery } from 'react-query';
+import { QueryFilters } from 'react-query/types/core/utils';
 
 type Awaited<T> = T extends Promise<infer U> ? U : T;
+type Updater<T> = T | ((oldData: T | undefined) => T);
 
 export class QueryHelper<
   TQueryFn extends (...args: any[]) => unknown,
@@ -16,6 +18,16 @@ export class QueryHelper<
 
   public static setQueryClient(queryClient: QueryClient): void {
     this.queryClient = queryClient;
+  }
+
+  private getQueryClient(): QueryClient {
+    if (!QueryHelper.queryClient) {
+      throw Error(
+        'QueryClient is not set. Please call QueryHelper.setQueryClient static method.'
+      );
+    }
+
+    return QueryHelper.queryClient;
   }
 
   private baseQueryKey: unknown[];
@@ -70,5 +82,15 @@ export class QueryHelper<
         ...options,
       });
     };
+  }
+
+  getQueryData(filters?: QueryFilters) {
+    const queryClient = this.getQueryClient();
+    return queryClient.getQueryData<TQueryFnResult>(this.baseQueryKey, filters);
+  }
+
+  setQueryData(updater: Updater<TQueryFnResult>) {
+    const queryClient = this.getQueryClient();
+    return queryClient.setQueryData(this.baseQueryKey, updater);
   }
 }
