@@ -1,9 +1,9 @@
 import type {
   QueryClient,
-  UseQueryOptions,
   UseInfiniteQueryOptions,
+  UseQueryOptions,
 } from 'react-query';
-import { useQuery, useInfiniteQuery } from 'react-query';
+import { useInfiniteQuery, useQuery } from 'react-query';
 import { QueryFilters } from 'react-query/types/core/utils';
 
 type Awaited<T> = T extends Promise<infer U> ? U : T;
@@ -33,6 +33,19 @@ export class QueryHelper<
   private baseQueryKey: unknown[];
   private queryFn: TQueryFn;
 
+  private splitArgs<TRestArgs extends unknown[]>(
+    args: unknown[]
+  ): [TQueryFnArgs, TRestArgs] {
+    const queryFnArgs = args.slice(0, this.queryFn.length) as TQueryFnArgs;
+    const restArgs = args.slice(this.queryFn.length) as TRestArgs;
+
+    return [queryFnArgs, restArgs];
+  }
+
+  private getQueryKey(queryFnArgs: TQueryFnArgs) {
+    return [...this.baseQueryKey, ...queryFnArgs];
+  }
+
   constructor(baseQueryKey: unknown[], queryFn: TQueryFn) {
     this.baseQueryKey = baseQueryKey;
     this.queryFn = queryFn;
@@ -45,15 +58,11 @@ export class QueryHelper<
         options?: UseQueryOptions<TQueryFnResult>
       ]
     ) => {
-      const queryFnArgs = args
-        .slice(0, this.queryFn.length)
-        .filter((arg) => arg !== undefined) as TQueryFnArgs;
-      const options = args.slice(this.queryFn.length)[0] as
-        | UseQueryOptions<TQueryFnResult>
-        | undefined;
+      const [queryFnArgs, [options]] =
+        this.splitArgs<[UseQueryOptions<TQueryFnResult>]>(args);
 
       return useQuery({
-        queryKey: [...this.baseQueryKey, ...queryFnArgs],
+        queryKey: this.getQueryKey(queryFnArgs),
         // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
         queryFn: () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult,
         ...defaultUseQueryOptions,
@@ -71,15 +80,11 @@ export class QueryHelper<
         options?: UseInfiniteQueryOptions<TQueryFnResult>
       ]
     ) => {
-      const queryFnArgs = args
-        .slice(0, this.queryFn.length)
-        .filter((arg) => arg !== undefined) as TQueryFnArgs;
-      const options = args.slice(this.queryFn.length)[0] as
-        | UseInfiniteQueryOptions<TQueryFnResult>
-        | undefined;
+      const [queryFnArgs, [options]] =
+        this.splitArgs<[UseInfiniteQueryOptions<TQueryFnResult>]>(args);
 
       return useInfiniteQuery({
-        queryKey: [...this.baseQueryKey, ...queryFnArgs],
+        queryKey: this.getQueryKey(queryFnArgs),
         // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
         queryFn: () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult,
         ...defaultUseInfiniteQueryOptions,
@@ -88,13 +93,25 @@ export class QueryHelper<
     };
   }
 
-  getQueryData(filters?: QueryFilters) {
+  getQueryData(
+    ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
+  ) {
+    const [queryFnArgs, [filters]] = this.splitArgs<[QueryFilters]>(args);
     const queryClient = this.getQueryClient();
-    return queryClient.getQueryData<TQueryFnResult>(this.baseQueryKey, filters);
+
+    return queryClient.getQueryData<TQueryFnResult>(
+      this.getQueryKey(queryFnArgs),
+      filters
+    );
   }
 
-  setQueryData(updater: Updater<TQueryFnResult>) {
+  setQueryData(
+    ...args: [...queryFnArgs: TQueryFnArgs, updater: Updater<TQueryFnResult>]
+  ) {
+    const [queryFnArgs, [updater]] =
+      this.splitArgs<[Updater<TQueryFnResult>]>(args);
     const queryClient = this.getQueryClient();
-    return queryClient.setQueryData(this.baseQueryKey, updater);
+
+    return queryClient.setQueryData(this.getQueryKey(queryFnArgs), updater);
   }
 }
