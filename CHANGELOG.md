@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.6
+
+### Patch Changes
+
+- ba9313c: Use queryFnArgs in getQueryData, setQueryData and remove undefined args filter logic
+
 ## 0.0.5
 
 ### Patch Changes
