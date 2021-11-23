@@ -297,15 +297,10 @@ describe('getQueriesData', () => {
     expect(getPostById.getQueriesData().length).toBe(3);
   });
 
-  it('should get specific query what matching with baseQueryKey and queryFnArgs', () => {
-    expect(getPostById.getQueriesData(1).length).toBe(1);
-  });
-
   it('should get queries what matching with filter', () => {
     const queryFilterPredicate = (query: Query) => query.queryKey[1] !== 3;
     expect(
-      getPostById.getQueriesData(undefined, { predicate: queryFilterPredicate })
-        .length
+      getPostById.getQueriesData({ predicate: queryFilterPredicate }).length
     ).toBe(2);
   });
 });

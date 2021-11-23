@@ -2,6 +2,7 @@ import type {
   FetchInfiniteQueryOptions,
   FetchQueryOptions,
   QueryClient,
+  SetDataOptions,
   UseInfiniteQueryOptions,
   UseQueryOptions,
 } from 'react-query';
@@ -178,14 +179,11 @@ export class QueryHelper<
     );
   }
 
-  getQueriesData(
-    ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
-  ) {
-    const [queryFnArgs, [filters]] = this.splitArgs<[QueryFilters]>(args);
+  getQueriesData(filters?: QueryFilters) {
     const queryClient = this.getQueryClient();
 
     return queryClient.getQueriesData<TQueryFnResult>(
-      filters || this.getQueryKey(queryFnArgs)
+      filters || (this.baseQueryKey as any)
     );
   }
 
