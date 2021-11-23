@@ -541,7 +541,7 @@ describe('setQueriesData', () => {
     await getPostById.prefetchQuery(3, { cacheTime: 1 });
   });
 
-  it('should update each quries data', () => {
+  it('should update each queries data', () => {
     getPostById.setQueriesData((cache: Post | undefined) => {
       cache!.title = `Modified ${cache!.title}`;
       return cache as Post;
@@ -575,7 +575,7 @@ describe('invalidateQueries', () => {
     await getPostById.prefetchQuery(3, { cacheTime: 1 });
   });
 
-  it('should invalidate all quries', () => {
+  it('should invalidate all queries', () => {
     getPostById.invalidateQueries();
 
     expect(getPostById.getQueryState(1)?.isInvalidated).toBe(true);
@@ -583,7 +583,7 @@ describe('invalidateQueries', () => {
     expect(getPostById.getQueryState(3)?.isInvalidated).toBe(true);
   });
 
-  it('should invalidate quries what matching by filter', () => {
+  it('should invalidate queries what matching by filter', () => {
     const predicate = (query: Query) => query.queryKey[1] !== 1;
     getPostById.invalidateQueries({ predicate });
 
@@ -599,7 +599,7 @@ describe('refetchQueries', () => {
     await getPostById.prefetchQuery(2, { cacheTime: 1 });
   });
 
-  it('should refetch all quries', async () => {
+  it('should refetch all queries', async () => {
     expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
 
     await getPostById.refetchQueries();
@@ -607,7 +607,7 @@ describe('refetchQueries', () => {
     expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(2);
   });
 
-  it('should refetch quries what matching by filter', async () => {
+  it('should refetch queries what matching by filter', async () => {
     expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
     expect(getPostById.getQueryState(2)?.dataUpdateCount).toBe(1);
 
