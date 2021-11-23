@@ -55,6 +55,37 @@ const UserInfo: FC = () => {
 };
 ```
 
+### Manage Query Data ([CodeSandbox](https://codesandbox.io/s/manage-query-data-lytzd))
+
+```tsx
+import { QueryHelper } from 'react-query-helper';
+import { queryClient } from './queryClient';
+
+// This is important.
+// You have to call QueryHelper.setQueryHelper before using some methods.
+// This allows QueryHelper instances to be able to use the same QueryClient.
+QueryHelper.setQueryHelper(queryClient);
+
+const UserUpdateName: FC = () => {
+  const hadnelClickUpdateName = () => {
+    const user = getUserById.getQueryData(1);
+
+    if (user) {
+      getUserById.setQueryData(1, {
+        ...user,
+        name: `John Doe#${Date.now()}`,
+      });
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={hadnelClickUpdateName}>Update Name</button>
+    </div>
+  );
+};
+```
+
 > WIP: More usage & examples will be added by library progress.
 
 ## License
