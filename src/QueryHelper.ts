@@ -3,6 +3,8 @@ import type {
   FetchQueryOptions,
   InvalidateQueryFilters,
   QueryClient,
+  RefetchOptions,
+  RefetchQueryFilters,
   SetDataOptions,
   UseInfiniteQueryOptions,
   UseQueryOptions,
@@ -220,5 +222,15 @@ export class QueryHelper<
     const queryClient = this.getQueryClient();
 
     return queryClient.invalidateQueries(this.baseQueryKey, filters);
+  }
+
+  refetchQueries(filters?: RefetchQueryFilters, options?: RefetchOptions) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.refetchQueries<TQueryFnResult>(
+      this.baseQueryKey,
+      filters,
+      options
+    );
   }
 }

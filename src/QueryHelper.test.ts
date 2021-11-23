@@ -592,3 +592,29 @@ describe('invalidateQueries', () => {
     expect(getPostById.getQueryState(3)?.isInvalidated).toBe(true);
   });
 });
+
+describe('refetchQueries', () => {
+  beforeEach(async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+  });
+
+  it('should refetch all quries', async () => {
+    expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
+
+    await getPostById.refetchQueries();
+
+    expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(2);
+  });
+
+  it('should refetch quries what matching by filter', async () => {
+    expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
+    expect(getPostById.getQueryState(2)?.dataUpdateCount).toBe(1);
+
+    const predicate = (query: Query) => query.queryKey[1] !== 1;
+    await getPostById.refetchQueries({ predicate });
+
+    expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
+    expect(getPostById.getQueryState(2)?.dataUpdateCount).toBe(2);
+  });
+});
