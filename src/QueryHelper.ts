@@ -64,7 +64,7 @@ export class QueryHelper<
     this.queryFn = queryFn;
   }
 
-  createQuery(defaultUseQueryOptions: UseQueryOptions<TQueryFnResult> = {}) {
+  createUseQuery(defaultUseQueryOptions: UseQueryOptions<TQueryFnResult> = {}) {
     return (
       ...args: [
         ...queryFnArgs: TQueryFnArgs,
@@ -83,7 +83,7 @@ export class QueryHelper<
     };
   }
 
-  createInfiniteQuery(
+  createUseInfiniteQuery(
     defaultUseInfiniteQueryOptions: UseInfiniteQueryOptions<TQueryFnResult> = {}
   ) {
     return (
