@@ -6,6 +6,7 @@ import type {
   QueryClient,
   RefetchOptions,
   RefetchQueryFilters,
+  ResetOptions,
   SetDataOptions,
   UseInfiniteQueryOptions,
   UseQueryOptions,
@@ -245,5 +246,11 @@ export class QueryHelper<
     const queryClient = this.getQueryClient();
 
     return queryClient.removeQueries(this.baseQueryKey, filters);
+  }
+
+  resetQueries(filters?: QueryFilters, options?: ResetOptions) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.resetQueries(this.baseQueryKey, filters, options);
   }
 }
