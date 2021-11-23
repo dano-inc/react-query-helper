@@ -837,3 +837,24 @@ describe('resetQueries', () => {
     `);
   });
 });
+
+describe('isFetching', () => {
+  it('should return 0 if any queries not fetching', () => {
+    expect(getPostById.isFetching()).toEqual(0);
+  });
+
+  it('should return 1 if exsists query exists that currently fetching', () => {
+    getPostById.prefetchQuery(1);
+
+    expect(getPostById.isFetching()).toEqual(1);
+  });
+
+  it('should return a count of queries that currently fetching', () => {
+    getPostById.prefetchQuery(1, { cacheTime: 1 });
+    getPostById.prefetchQuery(2, { cacheTime: 1 });
+    getPostById.prefetchQuery(3, { cacheTime: 1 });
+
+    const predicate = (query: Query) => query.queryKey[1] !== 1;
+    expect(getPostById.isFetching({ predicate })).toEqual(2);
+  });
+});

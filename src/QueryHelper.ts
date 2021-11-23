@@ -253,4 +253,10 @@ export class QueryHelper<
 
     return queryClient.resetQueries(this.baseQueryKey, filters, options);
   }
+
+  isFetching(filters?: QueryFilters) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.isFetching(this.baseQueryKey, filters);
+  }
 }
