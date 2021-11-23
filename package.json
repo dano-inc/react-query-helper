@@ -1,5 +1,15 @@
 {
   "name": "react-query-helper",
+  "description": "A helper library to use react-query more efficient, consistency",
+  "license": "MIT",
+  "keywords": [
+    "react-query",
+    "helper"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dano-inc/react-query-helper"
+  },
   "version": "0.0.7",
   "packageManager": "yarn@3.1.0",
   "publishConfig": {
