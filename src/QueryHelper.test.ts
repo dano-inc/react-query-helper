@@ -50,6 +50,54 @@ it('should throw error if QueryHelper.setQueryClient not have been called', () =
   QueryHelper.setQueryClient(queryClient);
 });
 
+describe('fetchQuery', () => {
+  let spy: jest.SpyInstance;
+
+  beforeEach(() => {
+    spy = jest.spyOn(queryClient, 'fetchQuery');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should call QueryClient.fetchQuery with baseQueryKey and queryFn', () => {
+    getPosts.fetchQuery();
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('should call QueryClient.fetchQuery with baseQueryKey and queryFn and fetchOptions', () => {
+    getPosts.fetchQuery(undefined, { staleTime: 1000 });
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+              undefined,
+            ],
+            "staleTime": 1000,
+          },
+        ],
+      ]
+    `);
+  });
+});
+
 describe('getQueryData', () => {
   it('should get access query data', () => {
     queryClient.setQueryData(

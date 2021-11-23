@@ -1,4 +1,5 @@
 import type {
+  FetchQueryOptions,
   QueryClient,
   UseInfiniteQueryOptions,
   UseQueryOptions,
@@ -94,6 +95,23 @@ export class QueryHelper<
         ...options,
       });
     };
+  }
+
+  fetchQuery(
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      options?: FetchQueryOptions<TQueryFnResult>
+    ]
+  ) {
+    const [queryFnArgs, [options]] =
+      this.splitArgs<[FetchQueryOptions<TQueryFnResult>]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.fetchQuery({
+      queryKey: this.getQueryKey(queryFnArgs),
+      queryFn: this.getQueryFn(queryFnArgs),
+      ...options,
+    });
   }
 
   getQueryData(
