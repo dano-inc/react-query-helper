@@ -541,7 +541,7 @@ describe('setQueriesData', () => {
     await getPostById.prefetchQuery(3, { cacheTime: 1 });
   });
 
-  it('test', () => {
+  it('should update each quries data', () => {
     getPostById.setQueriesData((cache: Post | undefined) => {
       cache!.title = `Modified ${cache!.title}`;
       return cache as Post;
