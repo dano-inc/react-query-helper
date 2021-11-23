@@ -1,5 +1,14 @@
 # react-query-helper
 
+## 0.0.7
+
+### Patch Changes
+
+- f611585: Add fetchInfiniteQuery
+- 10d2b02: Add fetchQuery
+- 0e031b2: Add prefetchQuery, prefetchInfiniteQuery
+- bef839c: Add getQueriesData
+
 ## 0.0.6
 
 ### Patch Changes
