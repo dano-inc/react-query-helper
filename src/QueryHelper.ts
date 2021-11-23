@@ -1,6 +1,7 @@
 import type {
   FetchInfiniteQueryOptions,
   FetchQueryOptions,
+  InvalidateQueryFilters,
   QueryClient,
   SetDataOptions,
   UseInfiniteQueryOptions,
@@ -213,5 +214,11 @@ export class QueryHelper<
     const queryClient = this.getQueryClient();
 
     return queryClient.setQueriesData(this.baseQueryKey, updater, options);
+  }
+
+  invalidateQueries(filters?: InvalidateQueryFilters<TQueryFnResult>) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.invalidateQueries(this.baseQueryKey, filters);
   }
 }

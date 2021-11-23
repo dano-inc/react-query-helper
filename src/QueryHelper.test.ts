@@ -567,3 +567,28 @@ describe('setQueriesData', () => {
     `);
   });
 });
+
+describe('invalidateQueries', () => {
+  beforeEach(async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+  });
+
+  it('should invalidate all quries', () => {
+    getPostById.invalidateQueries();
+
+    expect(getPostById.getQueryState(1)?.isInvalidated).toBe(true);
+    expect(getPostById.getQueryState(2)?.isInvalidated).toBe(true);
+    expect(getPostById.getQueryState(3)?.isInvalidated).toBe(true);
+  });
+
+  it('should invalidate quries what matching by filter', () => {
+    const predicate = (query: Query) => query.queryKey[1] !== 1;
+    getPostById.invalidateQueries({ predicate });
+
+    expect(getPostById.getQueryState(1)?.isInvalidated).toBe(false);
+    expect(getPostById.getQueryState(2)?.isInvalidated).toBe(true);
+    expect(getPostById.getQueryState(3)?.isInvalidated).toBe(true);
+  });
+});
