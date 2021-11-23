@@ -23,6 +23,17 @@ beforeEach(() => {
   queryClient.clear();
 });
 
+let originalDateNow: any;
+
+beforeAll(() => {
+  originalDateNow = Date.now;
+  Date.now = () => 1;
+});
+
+afterAll(() => {
+  Date.now = originalDateNow;
+});
+
 type Post = { id: number; title: string };
 
 const getPosts = new QueryHelper(
@@ -368,17 +379,6 @@ describe('setQueryData', () => {
 });
 
 describe('getQueryState', () => {
-  let originalDateNow: any;
-
-  beforeAll(() => {
-    originalDateNow = Date.now;
-    Date.now = () => 1;
-  });
-
-  afterAll(() => {
-    Date.now = originalDateNow;
-  });
-
   it('should return current query state', async () => {
     await getPostById.prefetchQuery(1, { cacheTime: 1 });
 
@@ -616,5 +616,121 @@ describe('refetchQueries', () => {
 
     expect(getPostById.getQueryState(1)?.dataUpdateCount).toBe(1);
     expect(getPostById.getQueryState(2)?.dataUpdateCount).toBe(2);
+  });
+});
+
+describe('cancelQueries', () => {
+  it('should cancel all queries', async () => {
+    getPostById.fetchQuery(1, { cacheTime: 1 });
+    expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
+      Object {
+        "data": undefined,
+        "dataUpdateCount": 0,
+        "dataUpdatedAt": 0,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": true,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "loading",
+      }
+    `);
+
+    await getPostById.cancelQueries();
+    expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
+      Object {
+        "data": undefined,
+        "dataUpdateCount": 0,
+        "dataUpdatedAt": 0,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": false,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "idle",
+      }
+    `);
+  });
+
+  it('should cancel queries what matching by filter', async () => {
+    getPostById.fetchQuery(1, { cacheTime: 1 });
+    getPostById.fetchQuery(2, { cacheTime: 1 });
+    expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
+      Object {
+        "data": undefined,
+        "dataUpdateCount": 0,
+        "dataUpdatedAt": 0,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": true,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "loading",
+      }
+    `);
+    expect(getPostById.getQueryState(2)).toMatchInlineSnapshot(`
+      Object {
+        "data": undefined,
+        "dataUpdateCount": 0,
+        "dataUpdatedAt": 0,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": true,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "loading",
+      }
+    `);
+
+    const predicate = (query: Query) => query.queryKey[1] !== 1;
+    await getPostById.cancelQueries({ predicate });
+
+    expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
+      Object {
+        "data": Object {
+          "id": 1,
+          "title": "Post#1",
+        },
+        "dataUpdateCount": 1,
+        "dataUpdatedAt": 1,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": false,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "success",
+      }
+    `);
+    expect(getPostById.getQueryState(2)).toMatchInlineSnapshot(`
+      Object {
+        "data": undefined,
+        "dataUpdateCount": 0,
+        "dataUpdatedAt": 0,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": false,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "idle",
+      }
+    `);
   });
 });

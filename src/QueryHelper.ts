@@ -1,4 +1,5 @@
 import type {
+  CancelOptions,
   FetchInfiniteQueryOptions,
   FetchQueryOptions,
   InvalidateQueryFilters,
@@ -232,5 +233,11 @@ export class QueryHelper<
       filters,
       options
     );
+  }
+
+  cancelQueries(filters?: QueryFilters, options?: CancelOptions) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.cancelQueries(this.baseQueryKey, filters, options);
   }
 }
