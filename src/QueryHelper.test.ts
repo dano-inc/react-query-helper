@@ -376,6 +376,32 @@ describe('setQueryData', () => {
   });
 });
 
+describe('getQueryState', () => {
+  it('should return current query state', async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+
+    expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
+      Object {
+        "data": Object {
+          "id": 1,
+          "title": "Post#1",
+        },
+        "dataUpdateCount": 1,
+        "dataUpdatedAt": 1637661858771,
+        "error": null,
+        "errorUpdateCount": 0,
+        "errorUpdatedAt": 0,
+        "fetchFailureCount": 0,
+        "fetchMeta": null,
+        "isFetching": false,
+        "isInvalidated": false,
+        "isPaused": false,
+        "status": "success",
+      }
+    `);
+  });
+});
+
 describe('useQuery', () => {
   it('should call useQuery with queryKey based on argument', () => {
     const useGetPostById = getPostById.createQuery();

@@ -198,4 +198,16 @@ export class QueryHelper<
 
     return queryClient.setQueryData(this.getQueryKey(queryFnArgs), updater);
   }
+
+  getQueryState(
+    ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
+  ) {
+    const [queryFnArgs, [filters]] = this.splitArgs<[QueryFilters]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.getQueryState<TQueryFnResult>(
+      this.getQueryKey(queryFnArgs),
+      filters
+    );
+  }
 }
