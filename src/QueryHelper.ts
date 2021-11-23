@@ -46,6 +46,11 @@ export class QueryHelper<
     return [...this.baseQueryKey, ...queryFnArgs];
   }
 
+  private getQueryFn(queryFnArgs: TQueryFnArgs) {
+    // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
+    return () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult;
+  }
+
   constructor(baseQueryKey: unknown[], queryFn: TQueryFn) {
     this.baseQueryKey = baseQueryKey;
     this.queryFn = queryFn;
@@ -63,8 +68,7 @@ export class QueryHelper<
 
       return useQuery({
         queryKey: this.getQueryKey(queryFnArgs),
-        // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
-        queryFn: () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult,
+        queryFn: this.getQueryFn(queryFnArgs),
         ...defaultUseQueryOptions,
         ...options,
       });
@@ -85,8 +89,7 @@ export class QueryHelper<
 
       return useInfiniteQuery({
         queryKey: this.getQueryKey(queryFnArgs),
-        // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
-        queryFn: () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult,
+        queryFn: this.getQueryFn(queryFnArgs),
         ...defaultUseInfiniteQueryOptions,
         ...options,
       });
