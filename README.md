@@ -67,7 +67,7 @@ import { queryClient } from './queryClient';
 QueryHelper.setQueryHelper(queryClient);
 
 const UserUpdateName: FC = () => {
-  const hadnelClickUpdateName = () => {
+  const handleClickUpdateName = () => {
     const user = getUserById.getQueryData(1);
 
     if (user) {
@@ -80,7 +80,7 @@ const UserUpdateName: FC = () => {
 
   return (
     <div>
-      <button onClick={hadnelClickUpdateName}>Update Name</button>
+      <button onClick={handleClickUpdateName}>Update Name</button>
     </div>
   );
 };
