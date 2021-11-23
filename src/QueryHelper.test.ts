@@ -7,10 +7,6 @@ jest.mock('react-query', () => ({
   useInfiniteQuery: jest.fn(),
 }));
 
-it('should pass', () => {
-  expect(1 + 1).toBe(2);
-});
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -377,6 +373,17 @@ describe('setQueryData', () => {
 });
 
 describe('getQueryState', () => {
+  let originalDateNow: any;
+
+  beforeAll(() => {
+    originalDateNow = Date.now;
+    Date.now = () => 1;
+  });
+
+  afterAll(() => {
+    Date.now = originalDateNow;
+  });
+
   it('should return current query state', async () => {
     await getPostById.prefetchQuery(1, { cacheTime: 1 });
 
@@ -387,7 +394,7 @@ describe('getQueryState', () => {
           "title": "Post#1",
         },
         "dataUpdateCount": 1,
-        "dataUpdatedAt": 1637661858771,
+        "dataUpdatedAt": 1,
         "error": null,
         "errorUpdateCount": 0,
         "errorUpdatedAt": 0,
