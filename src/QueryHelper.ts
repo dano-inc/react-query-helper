@@ -240,4 +240,10 @@ export class QueryHelper<
 
     return queryClient.cancelQueries(this.baseQueryKey, filters, options);
   }
+
+  removeQueries(filters?: QueryFilters) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.removeQueries(this.baseQueryKey, filters);
+  }
 }

@@ -734,3 +734,46 @@ describe('cancelQueries', () => {
     `);
   });
 });
+
+describe('removeQueries', () => {
+  it('should remove all queries', async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
+      Object {
+        "id": 1,
+        "title": "Post#1",
+      }
+    `);
+
+    getPostById.removeQueries();
+    expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`undefined`);
+  });
+
+  it('should remove queries what matching by filter', async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
+      Object {
+        "id": 1,
+        "title": "Post#1",
+      }
+    `);
+    expect(getPostById.getQueryData(2)).toMatchInlineSnapshot(`
+      Object {
+        "id": 2,
+        "title": "Post#2",
+      }
+    `);
+
+    const predicate = (query: Query) => query.queryKey[1] !== 1;
+    getPostById.removeQueries({ predicate });
+
+    expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
+      Object {
+        "id": 1,
+        "title": "Post#1",
+      }
+    `);
+    expect(getPostById.getQueryData(2)).toMatchInlineSnapshot(`undefined`);
+  });
+});
