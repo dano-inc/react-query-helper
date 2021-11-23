@@ -1,4 +1,5 @@
 import type {
+  FetchInfiniteQueryOptions,
   FetchQueryOptions,
   QueryClient,
   UseInfiniteQueryOptions,
@@ -108,6 +109,23 @@ export class QueryHelper<
     const queryClient = this.getQueryClient();
 
     return queryClient.fetchQuery({
+      queryKey: this.getQueryKey(queryFnArgs),
+      queryFn: this.getQueryFn(queryFnArgs),
+      ...options,
+    });
+  }
+
+  fetchInfiniteQuery(
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      options?: FetchInfiniteQueryOptions<TQueryFnResult>
+    ]
+  ) {
+    const [queryFnArgs, [options]] =
+      this.splitArgs<[FetchInfiniteQueryOptions<TQueryFnResult>]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.fetchInfiniteQuery({
       queryKey: this.getQueryKey(queryFnArgs),
       queryFn: this.getQueryFn(queryFnArgs),
       ...options,
