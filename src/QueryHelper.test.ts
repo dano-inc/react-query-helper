@@ -1,4 +1,4 @@
-import { QueryClient, useInfiniteQuery, useQuery } from 'react-query';
+import { Query, QueryClient, useInfiniteQuery, useQuery } from 'react-query';
 import { QueryHelper } from './QueryHelper';
 
 jest.mock('react-query', () => ({
@@ -287,6 +287,30 @@ describe('getQueryData', () => {
         "title": "foo",
       }
     `);
+  });
+});
+
+describe('getQueriesData', () => {
+  beforeEach(async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+  });
+
+  it('should get all queries what matching with baseQueryKey', () => {
+    expect(getPostById.getQueriesData().length).toBe(3);
+  });
+
+  it('should get specific query what matching with baseQueryKey and queryFnArgs', () => {
+    expect(getPostById.getQueriesData(1).length).toBe(1);
+  });
+
+  it('should get queries what matching with filter', () => {
+    const queryFilterPredicate = (query: Query) => query.queryKey[1] !== 3;
+    expect(
+      getPostById.getQueriesData(undefined, { predicate: queryFilterPredicate })
+        .length
+    ).toBe(2);
   });
 });
 

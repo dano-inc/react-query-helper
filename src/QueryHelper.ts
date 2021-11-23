@@ -178,6 +178,17 @@ export class QueryHelper<
     );
   }
 
+  getQueriesData(
+    ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
+  ) {
+    const [queryFnArgs, [filters]] = this.splitArgs<[QueryFilters]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.getQueriesData<TQueryFnResult>(
+      filters || this.getQueryKey(queryFnArgs)
+    );
+  }
+
   setQueryData(
     ...args: [...queryFnArgs: TQueryFnArgs, updater: Updater<TQueryFnResult>]
   ) {
