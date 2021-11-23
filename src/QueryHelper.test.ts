@@ -152,6 +152,108 @@ describe('fetchInfiniteQuery', () => {
   });
 });
 
+describe('prefetchQuery', () => {
+  let spy: jest.SpyInstance;
+
+  beforeEach(() => {
+    spy = jest.spyOn(queryClient, 'prefetchQuery');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should call QueryClient.prefetchQuery with baseQueryKey and queryFn', () => {
+    getPosts.prefetchQuery();
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('should call QueryClient.prefetchQuery with baseQueryKey and queryFn and fetchOptions', () => {
+    getPosts.prefetchQuery(undefined, { staleTime: 1000 });
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+              undefined,
+            ],
+            "staleTime": 1000,
+          },
+        ],
+      ]
+    `);
+  });
+});
+
+describe('prefetchInfiniteQuery', () => {
+  let spy: jest.SpyInstance;
+
+  beforeEach(() => {
+    spy = jest.spyOn(queryClient, 'prefetchInfiniteQuery');
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
+  });
+
+  it('should call QueryClient.prefetchInfiniteQuery with baseQueryKey and queryFn', () => {
+    getPosts.prefetchInfiniteQuery();
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "behavior": Object {
+              "onFetch": [Function],
+            },
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('should call QueryClient.prefetchInfiniteQuery with baseQueryKey and queryFn and fetchOptions', () => {
+    getPosts.prefetchInfiniteQuery(undefined, { staleTime: 1000 });
+
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "behavior": Object {
+              "onFetch": [Function],
+            },
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+              undefined,
+            ],
+            "staleTime": 1000,
+          },
+        ],
+      ]
+    `);
+  });
+});
+
 describe('getQueryData', () => {
   it('should get access query data', () => {
     queryClient.setQueryData(

@@ -132,6 +132,40 @@ export class QueryHelper<
     });
   }
 
+  prefetchQuery(
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      options?: FetchQueryOptions<TQueryFnResult>
+    ]
+  ) {
+    const [queryFnArgs, [options]] =
+      this.splitArgs<[FetchQueryOptions<TQueryFnResult>]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.prefetchQuery({
+      queryKey: this.getQueryKey(queryFnArgs),
+      queryFn: this.getQueryFn(queryFnArgs),
+      ...options,
+    });
+  }
+
+  prefetchInfiniteQuery(
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      options?: FetchInfiniteQueryOptions<TQueryFnResult>
+    ]
+  ) {
+    const [queryFnArgs, [options]] =
+      this.splitArgs<[FetchInfiniteQueryOptions<TQueryFnResult>]>(args);
+    const queryClient = this.getQueryClient();
+
+    return queryClient.prefetchInfiniteQuery({
+      queryKey: this.getQueryKey(queryFnArgs),
+      queryFn: this.getQueryFn(queryFnArgs),
+      ...options,
+    });
+  }
+
   getQueryData(
     ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
   ) {
