@@ -538,3 +538,37 @@ describe('useInfiniteQuery', () => {
     `);
   });
 });
+
+describe('setQueriesData', () => {
+  beforeEach(async () => {
+    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+  });
+
+  it('test', () => {
+    getPostById.setQueriesData((cache: Post | undefined) => {
+      cache!.title = `Modified ${cache!.title}`;
+      return cache as Post;
+    });
+
+    expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
+      Object {
+        "id": 1,
+        "title": "Modified Post#1",
+      }
+    `);
+    expect(getPostById.getQueryData(2)).toMatchInlineSnapshot(`
+      Object {
+        "id": 2,
+        "title": "Modified Post#2",
+      }
+    `);
+    expect(getPostById.getQueryData(3)).toMatchInlineSnapshot(`
+      Object {
+        "id": 3,
+        "title": "Modified Post#3",
+      }
+    `);
+  });
+});

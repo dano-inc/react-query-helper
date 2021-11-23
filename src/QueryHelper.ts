@@ -210,4 +210,10 @@ export class QueryHelper<
       filters
     );
   }
+
+  setQueriesData(updater: Updater<TQueryFnResult>, options?: SetDataOptions) {
+    const queryClient = this.getQueryClient();
+
+    return queryClient.setQueriesData(this.baseQueryKey, updater, options);
+  }
 }
