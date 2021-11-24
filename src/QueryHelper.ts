@@ -13,10 +13,9 @@ import {
   UseQueryOptions,
 } from 'react-query';
 import { useInfiniteQuery, useQuery } from 'react-query';
-import { QueryFilters } from 'react-query/types/core/utils';
+import { QueryFilters, Updater } from 'react-query/types/core/utils';
 
 type Awaited<T> = T extends Promise<infer U> ? U : T;
-type Updater<T> = T | ((oldData: T | undefined) => T);
 
 export class QueryHelper<
   TQueryFn extends (...args: any[]) => unknown,
@@ -207,10 +206,15 @@ export class QueryHelper<
   }
 
   setQueryData(
-    ...args: [...queryFnArgs: TQueryFnArgs, updater: Updater<TQueryFnResult>]
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      updater: Updater<TQueryFnResult | undefined, TQueryFnResult>
+    ]
   ) {
     const [queryFnArgs, [updater]] =
-      this.splitArgs<[Updater<TQueryFnResult>]>(args);
+      this.splitArgs<[Updater<TQueryFnResult | undefined, TQueryFnResult>]>(
+        args
+      );
     const queryClient = this.getQueryClient();
 
     return queryClient.setQueryData(this.getQueryKey(queryFnArgs), updater);
@@ -228,7 +232,10 @@ export class QueryHelper<
     );
   }
 
-  setQueriesData(updater: Updater<TQueryFnResult>, options?: SetDataOptions) {
+  setQueriesData(
+    updater: Updater<TQueryFnResult | undefined, TQueryFnResult>,
+    options?: SetDataOptions
+  ) {
     const queryClient = this.getQueryClient();
 
     return queryClient.setQueriesData(this.baseQueryKey, updater, options);
