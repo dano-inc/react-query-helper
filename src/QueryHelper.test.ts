@@ -1,10 +1,17 @@
-import { Query, QueryClient, useInfiniteQuery, useQuery } from 'react-query';
+import {
+  Query,
+  QueryClient,
+  useInfiniteQuery,
+  useIsFetching,
+  useQuery,
+} from 'react-query';
 import { QueryHelper } from './QueryHelper';
 
 jest.mock('react-query', () => ({
   ...jest.requireActual('react-query'),
   useQuery: jest.fn(),
   useInfiniteQuery: jest.fn(),
+  useIsFetching: jest.fn(),
 }));
 
 const queryClient = new QueryClient({
@@ -182,6 +189,66 @@ describe('createUseInfiniteQuery', () => {
             },
           ],
         },
+      ]
+    `);
+  });
+});
+
+describe('createUseIsFetching', () => {
+  it('should call useIsFetching with queryKey based on argument', () => {
+    const useGetPostByIdIsFetching = getPostById.createUseIsFetching();
+    useGetPostByIdIsFetching(1);
+
+    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Array [
+            "post",
+            1,
+          ],
+          Object {},
+        ],
+      ]
+    `);
+  });
+
+  it('should call useIsFetching with filters from last argument', () => {
+    const useGetPostByIdIsFetching = getPostById.createUseIsFetching();
+    useGetPostByIdIsFetching(1, { exact: true });
+
+    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Array [
+            "post",
+            1,
+          ],
+          Object {
+            "exact": true,
+          },
+        ],
+      ]
+    `);
+  });
+
+  it('should call useIsFetching with default query filters and filters from last argument', () => {
+    const useGetPostByIdIsFetching = getPostById.createUseIsFetching({
+      stale: true,
+    });
+    useGetPostByIdIsFetching(1, { exact: true });
+
+    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Array [
+            "post",
+            1,
+          ],
+          Object {
+            "exact": true,
+            "stale": true,
+          },
+        ],
       ]
     `);
   });

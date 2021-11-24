@@ -1,4 +1,4 @@
-import type {
+import {
   CancelOptions,
   FetchInfiniteQueryOptions,
   FetchQueryOptions,
@@ -9,6 +9,7 @@ import type {
   ResetOptions,
   SetDataOptions,
   UseInfiniteQueryOptions,
+  useIsFetching,
   UseQueryOptions,
 } from 'react-query';
 import { useInfiniteQuery, useQuery } from 'react-query';
@@ -100,6 +101,19 @@ export class QueryHelper<
         queryFn: this.getQueryFn(queryFnArgs),
         ...defaultUseInfiniteQueryOptions,
         ...options,
+      });
+    };
+  }
+
+  createUseIsFetching(defaultUseIsFetchingFilters: QueryFilters = {}) {
+    return (
+      ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
+    ) => {
+      const [queryFnArgs, [filters]] = this.splitArgs<[QueryFilters?]>(args);
+
+      return useIsFetching(this.getQueryKey(queryFnArgs), {
+        ...defaultUseIsFetchingFilters,
+        ...filters,
       });
     };
   }
