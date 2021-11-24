@@ -6,9 +6,9 @@ A helper library to use react-query more efficient, consistency
 
 ## Problems
 
-I've been using react-query for 2-3 years. in most situations, I used it to manage the remote server state.
-however, managing the query keys and having to match the type were tires for me.
-especially, when the type that I inferred manually is not matched with the actual type, it's really hard.
+I've been using react-query for 2-3 years. In most situations, I used it to manage the remote server state.
+However, Managing the query keys and Matching the query data type manually were tires for me.
+Sometimes, It makes me sad when the query data type that I inferred manually is not equal with the actual query data type.
 
 ## Features
 
