@@ -1,5 +1,21 @@
 # react-query-helper
 
+## 0.0.8
+
+### Patch Changes
+
+- e51834f: Add removeQueries
+- 191671b: Add resetQueries
+- 1c31c3e: Add setQueriesData
+- c28cdac: Add getQueryState
+- dcaabf1: Add isFetching
+- 4e8caf3: Update getQueriesData usage
+- b9a7d7a: Add cancelQueries
+- 0c3067e: Add invalidateQueries
+- 7c1a01a: Add refetchQueries
+- 94443c0: Add createUseIsFetching
+- 8776a43: Rename createQuery, createInfiniteQuery into each createUseQuery, createUseInfiniteQuery
+
 ## 0.0.7
 
 ### Patch Changes
