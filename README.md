@@ -92,6 +92,8 @@ const UserUpdater: FC = () => {
 
 - [Basic Query](https://codesandbox.io/s/basic-query-1dn5u?file=/src/App.tsx)
 - [Manage Query Data](https://codesandbox.io/s/manage-query-data-lytzd)
+- [Optimistic Update](https://codesandbox.io/s/optimistic-update-t1lkt)
+- [With Next.js (Using Hydration)](https://codesandbox.io/s/with-next-js-typescript-forked-94kzy)
 
 > More examples will be added by library progress.
 
