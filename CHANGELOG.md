@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.12
+
+### Patch Changes
+
+- 4ca43af: Refactor into makeQueryHelper
+
 ## 0.0.11
 
 ### Patch Changes
