@@ -45,12 +45,12 @@ type Post = { id: number; title: string };
 
 const getPosts = new QueryHelper(
   ['posts'],
-  (payload?: { after?: string; first?: number }) => [] as Post[]
+  () => (payload?: { after?: string; first?: number }) => [] as Post[]
 );
 
 const getPostById = new QueryHelper(
   ['post'],
-  (id?: number) => ({ id, title: `Post#${id}` } as Post)
+  () => (id?: number) => ({ id, title: `Post#${id}` } as Post)
 );
 
 it('should throw error if QueryHelper.setQueryClient not have been called', () => {
