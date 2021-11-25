@@ -1,6 +1,6 @@
 # react-query-helper
 
-[![npm version](https://badge.fury.io/js/react-query-helper.svg)](https://badge.fury.io/js/react-query-helper) [![codecov](https://codecov.io/gh/dano-inc/react-query-helper/branch/main/graph/badge.svg?token=TD9B2BKN24)](https://codecov.io/gh/dano-inc/react-query-helper) ![GitHub](https://img.shields.io/github/license/dano-inc/react-query-helper)
+[![npm version](https://badge.fury.io/js/react-query-helper.svg)](https://badge.fury.io/js/react-query-helper) ![npm bundle size](https://img.shields.io/bundlephobia/min/react-query-helper) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/react-query-helper) [![codecov](https://codecov.io/gh/dano-inc/react-query-helper/branch/main/graph/badge.svg?token=TD9B2BKN24)](https://codecov.io/gh/dano-inc/react-query-helper) ![GitHub](https://img.shields.io/github/license/dano-inc/react-query-helper)
 
 A helper library to use react-query more efficient, consistency
 
