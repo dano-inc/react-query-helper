@@ -1,5 +1,12 @@
 # react-query-helper
 
+## 0.0.11
+
+### Patch Changes
+
+- 4137e62: Add getInfiniteQueryData
+- 4c87ad5: Add setInfiniteQueryData
+
 ## 0.0.10
 
 ### Patch Changes
