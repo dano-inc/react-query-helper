@@ -209,6 +209,14 @@ export class QueryHelper<
     );
   }
 
+  getInfiniteQueryData(
+    ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
+  ) {
+    return this.getQueryData(...args) as
+      | InfiniteData<TQueryFnResult>
+      | undefined;
+  }
+
   getQueriesData(filters?: QueryFilters) {
     const queryClient = this.getQueryClient();
 

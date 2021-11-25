@@ -494,6 +494,23 @@ describe('getQueryData', () => {
   });
 });
 
+describe('getInfiniteQueryData', () => {
+  it('should get access infinite query data', async () => {
+    await getPosts.prefetchInfiniteQuery(undefined, { cacheTime: 1 });
+
+    expect(getPosts.getInfiniteQueryData(undefined)).toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Array [],
+        ],
+      }
+    `);
+  });
+});
+
 describe('getQueriesData', () => {
   beforeEach(async () => {
     await getPostById.prefetchQuery(1, { cacheTime: 1 });
