@@ -4,28 +4,45 @@ import {
   FetchQueryOptions,
   InvalidateQueryFilters,
   QueryClient,
+  QueryFunctionContext,
   RefetchOptions,
   RefetchQueryFilters,
   ResetOptions,
   SetDataOptions,
+  useInfiniteQuery,
   UseInfiniteQueryOptions,
   useIsFetching,
+  useQuery,
   UseQueryOptions,
 } from 'react-query';
-import { useInfiniteQuery, useQuery } from 'react-query';
 import { QueryFilters, Updater } from 'react-query/types/core/utils';
 
 type Awaited<T> = T extends Promise<infer U> ? U : T;
 
 export class QueryHelper<
-  TQueryFn extends (...args: any[]) => unknown,
-  TQueryFnArgs extends unknown[] = Parameters<TQueryFn>,
-  TQueryFnResult extends unknown = Awaited<ReturnType<TQueryFn>>
+  TQueryFn extends (
+    context: QueryFunctionContext
+  ) => (...args: any[]) => unknown,
+  TQueryFnArgs extends unknown[] = Parameters<ReturnType<TQueryFn>>,
+  TQueryFnResult extends unknown = Awaited<ReturnType<ReturnType<TQueryFn>>>
 > {
   static queryClient: QueryClient;
 
   public static setQueryClient(queryClient: QueryClient): void {
     this.queryClient = queryClient;
+  }
+
+  private baseQueryKey: unknown[];
+  private queryFn: TQueryFn;
+  private queryFnArgsLength: number;
+
+  constructor(baseQueryKey: unknown[], queryFn: TQueryFn) {
+    this.baseQueryKey = baseQueryKey;
+    this.queryFn = queryFn;
+    this.queryFnArgsLength = queryFn({
+      meta: undefined,
+      queryKey: this.baseQueryKey,
+    }).length;
   }
 
   private getQueryClient(): QueryClient {
@@ -38,14 +55,11 @@ export class QueryHelper<
     return QueryHelper.queryClient;
   }
 
-  private baseQueryKey: unknown[];
-  private queryFn: TQueryFn;
-
   private splitArgs<TRestArgs extends unknown[]>(
     args: unknown[]
   ): [TQueryFnArgs, TRestArgs] {
-    const queryFnArgs = args.slice(0, this.queryFn.length) as TQueryFnArgs;
-    const restArgs = args.slice(this.queryFn.length) as TRestArgs;
+    const queryFnArgs = args.slice(0, this.queryFnArgsLength) as TQueryFnArgs;
+    const restArgs = args.slice(this.queryFnArgsLength) as TRestArgs;
 
     return [queryFnArgs, restArgs];
   }
@@ -55,13 +69,10 @@ export class QueryHelper<
   }
 
   private getQueryFn(queryFnArgs: TQueryFnArgs) {
-    // TODO: how to handle QueryFunctionContext? should it causes breaking changes?
-    return () => this.queryFn.apply(null, queryFnArgs) as TQueryFnResult;
-  }
-
-  constructor(baseQueryKey: unknown[], queryFn: TQueryFn) {
-    this.baseQueryKey = baseQueryKey;
-    this.queryFn = queryFn;
+    return (context: QueryFunctionContext) =>
+      this.queryFn
+        .call(null, context)
+        .apply(null, queryFnArgs) as TQueryFnResult;
   }
 
   createUseQuery(defaultUseQueryOptions: UseQueryOptions<TQueryFnResult> = {}) {
