@@ -52,11 +52,15 @@ Then, create `QueryHelper` instance. Examples:
 ```tsx
 import type { User } from './types';
 
-export const getUserById = new QueryHelper(['user'], (id: number) => {
-  return fetch(`https://jsonplaceholder.typicode.com/users/${id}/`).then(
-    (response) => response.json() as Promise<User>
-  );
-});
+export const getUserById = new QueryHelper(
+  ['user'],
+  // NOTE: You can access QueryFunctionContext in your function scope.
+  (context) => (id: number) => {
+    return fetch(`https://jsonplaceholder.typicode.com/users/${id}/`).then(
+      (response) => response.json() as Promise<User>
+    );
+  }
+);
 ```
 
 Now you can make a hook that type-safe `useQuery` with `createUseQuery` and get or set query data type-safety.
