@@ -33,7 +33,7 @@ Call `makeQueryHelper` function to create query helper. Examples:
 ```tsx
 import { makeQueryHelper } from 'react-query-helper';
 import { queryClient } from '../queryClient';
-import type { User } from './types';
+import type { User } from '../types';
 
 export const getUserById = makeQueryHelper({
   queryClient,
