@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.9
+
+### Patch Changes
+
+- 479a90b: Support QueryFunctionContext
+
 ## 0.0.8
 
 ### Patch Changes
