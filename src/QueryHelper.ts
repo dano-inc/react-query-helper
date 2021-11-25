@@ -228,16 +228,21 @@ export class QueryHelper<
   setQueryData(
     ...args: [
       ...queryFnArgs: TQueryFnArgs,
-      updater: Updater<TQueryFnResult | undefined, TQueryFnResult>
+      updater: Updater<TQueryFnResult | undefined, TQueryFnResult>,
+      options?: SetDataOptions
     ]
   ) {
-    const [queryFnArgs, [updater]] =
-      this.splitArgs<[Updater<TQueryFnResult | undefined, TQueryFnResult>]>(
-        args
-      );
+    const [queryFnArgs, [updater, options]] =
+      this.splitArgs<
+        [Updater<TQueryFnResult | undefined, TQueryFnResult>, SetDataOptions?]
+      >(args);
     const queryClient = this.getQueryClient();
 
-    return queryClient.setQueryData(this.getQueryKey(queryFnArgs), updater);
+    return queryClient.setQueryData(
+      this.getQueryKey(queryFnArgs),
+      updater,
+      options
+    );
   }
 
   setInfiniteQueryData(
@@ -246,7 +251,8 @@ export class QueryHelper<
       updater: Updater<
         InfiniteData<TQueryFnResult> | undefined,
         InfiniteData<TQueryFnResult>
-      >
+      >,
+      options?: SetDataOptions
     ]
   ) {
     return this.setQueryData(...(args as any)) as InfiniteData<TQueryFnResult>;
