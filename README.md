@@ -28,39 +28,23 @@ $ npm install react-query-helper
 
 ## Usage
 
-At the first, You have to call `QueryHelper.setQueryClient()` before using some methods.
-This allows `QueryHelper` instances to be able to use the same `QueryClient`.
+Call `makeQueryHelper` function to create query helper. Examples:
 
 ```tsx
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { QueryHelper } from 'react-query-helper';
-
-const queryClient = new QueryClient();
-QueryHelper.setQueryClient(queryClient);
-
-export default function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <UserInfo />
-    </QueryClientProvider>
-  );
-}
-```
-
-Then, create `QueryHelper` instance. Examples:
-
-```tsx
+import { makeQueryHelper } from 'react-query-helper';
+import { queryClient } from '../queryClient';
 import type { User } from './types';
 
-export const getUserById = new QueryHelper(
-  ['user'],
+export const getUserById = makeQueryHelper({
+  queryClient,
+  baseQueryKey: ['user'],
   // NOTE: You can access QueryFunctionContext in your function scope.
-  (context) => (id: number) => {
+  queryFn: (context) => (id: number) => {
     return fetch(`https://jsonplaceholder.typicode.com/users/${id}/`).then(
       (response) => response.json() as Promise<User>
     );
-  }
-);
+  },
+});
 ```
 
 Now you can make a hook that type-safe `useQuery` with `createUseQuery` and get or set query data type-safety.
