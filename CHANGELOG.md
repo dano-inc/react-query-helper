@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.0.10
+
+### Patch Changes
+
+- 4296b3e: Fix package.json main, module fields
+
 ## 0.0.9
 
 ### Patch Changes
