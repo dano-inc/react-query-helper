@@ -5,7 +5,7 @@ import {
   useIsFetching,
   useQuery,
 } from 'react-query';
-import { QueryHelper } from './QueryHelper';
+import { makeQueryHelper } from './makeQueryHelper';
 
 jest.mock('react-query', () => ({
   ...jest.requireActual('react-query'),
@@ -14,16 +14,14 @@ jest.mock('react-query', () => ({
   useIsFetching: jest.fn(),
 }));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      cacheTime: 0,
-    },
-  },
-});
+const mockUseQuery: jest.MockedFunction<typeof useQuery> = useQuery as any;
+const mockUseInfiniteQuery: jest.MockedFunction<typeof useQuery> =
+  useInfiniteQuery as any;
+const mockUseIsFetching: jest.MockedFunction<typeof useQuery> =
+  useIsFetching as any;
 
-beforeAll(() => {
-  QueryHelper.setQueryClient(queryClient);
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { cacheTime: 1 } },
 });
 
 beforeEach(() => {
@@ -43,25 +41,27 @@ afterAll(() => {
 
 type Post = { id: number; title: string };
 
-const getPosts = new QueryHelper(
-  ['posts'],
-  () => (payload?: { after?: string; first?: number }) => [] as Post[]
-);
+const getPosts = makeQueryHelper({
+  queryClient,
+  baseQueryKey: ['posts'],
+  queryFn: () => (): Post[] => [{ id: 1, title: 'Foo' }],
+});
 
-const getPostById = new QueryHelper(
-  ['post'],
-  () => (id?: number) => ({ id, title: `Post#${id}` } as Post)
-);
+const getPostsWithFilter = makeQueryHelper({
+  queryClient,
+  baseQueryKey: ['posts'],
+  queryFn:
+    () =>
+    (_: { type: string }): Post[] =>
+      [{ id: 1, title: 'Foo' }],
+});
 
-it('should throw error if QueryHelper.setQueryClient not have been called', () => {
-  // NOTE: Is this right method?
-  QueryHelper.setQueryClient(null as any);
-
-  expect(() => getPosts.getQueryData()).toThrowErrorMatchingInlineSnapshot(
-    `"QueryClient is not set. Please call QueryHelper.setQueryClient static method."`
-  );
-
-  QueryHelper.setQueryClient(queryClient);
+const getPostById = makeQueryHelper({
+  queryClient,
+  baseQueryKey: ['post'],
+  queryFn:
+    () =>
+    (id: number): Post => ({ id, title: `Post#${id}` }),
 });
 
 describe('createUseQuery', () => {
@@ -69,15 +69,17 @@ describe('createUseQuery', () => {
     const useGetPostById = getPostById.createUseQuery();
     useGetPostById(1);
 
-    expect((useQuery as jest.Mock).mock.calls[0]).toMatchInlineSnapshot(`
+    expect(mockUseQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "queryFn": [Function],
-          "queryKey": Array [
-            "post",
-            1,
-          ],
-        },
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "post",
+              1,
+            ],
+          },
+        ],
       ]
     `);
   });
@@ -86,17 +88,19 @@ describe('createUseQuery', () => {
     const useGetPostById = getPostById.createUseQuery();
     useGetPostById(2, { enabled: true, suspense: true });
 
-    expect((useQuery as jest.Mock).mock.calls[0]).toMatchInlineSnapshot(`
+    expect(mockUseQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "enabled": true,
-          "queryFn": [Function],
-          "queryKey": Array [
-            "post",
-            2,
-          ],
-          "suspense": true,
-        },
+        Array [
+          Object {
+            "enabled": true,
+            "queryFn": [Function],
+            "queryKey": Array [
+              "post",
+              2,
+            ],
+            "suspense": true,
+          },
+        ],
       ]
     `);
   });
@@ -105,19 +109,21 @@ describe('createUseQuery', () => {
     const useGetPostById = getPostById.createUseQuery({ cacheTime: 1000 });
     useGetPostById(3, { meta: { type: 'test' } });
 
-    expect((useQuery as jest.Mock).mock.calls[0]).toMatchInlineSnapshot(`
+    expect(mockUseQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "cacheTime": 1000,
-          "meta": Object {
-            "type": "test",
+        Array [
+          Object {
+            "cacheTime": 1000,
+            "meta": Object {
+              "type": "test",
+            },
+            "queryFn": [Function],
+            "queryKey": Array [
+              "post",
+              3,
+            ],
           },
-          "queryFn": [Function],
-          "queryKey": Array [
-            "post",
-            3,
-          ],
-        },
+        ],
       ]
     `);
   });
@@ -126,69 +132,60 @@ describe('createUseQuery', () => {
 describe('createUseInfiniteQuery', () => {
   it('should call useInfiniteQuery with queryKey based on argument', () => {
     const useGetPosts = getPosts.createUseInfiniteQuery();
-    useGetPosts({ after: '', first: 10 });
+    useGetPosts();
 
-    expect((useInfiniteQuery as jest.Mock).mock.calls[0])
-      .toMatchInlineSnapshot(`
+    expect(mockUseInfiniteQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "queryFn": [Function],
-          "queryKey": Array [
-            "posts",
-            Object {
-              "after": "",
-              "first": 10,
-            },
-          ],
-        },
+        Array [
+          Object {
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+          },
+        ],
       ]
     `);
   });
 
   it('should call useInfiniteQuery with options from last argument', () => {
     const useGetPosts = getPosts.createUseInfiniteQuery();
-    useGetPosts({ after: '', first: 10 }, { enabled: true, suspense: true });
+    useGetPosts({ enabled: true, suspense: true });
 
-    expect((useInfiniteQuery as jest.Mock).mock.calls[0])
-      .toMatchInlineSnapshot(`
+    expect(mockUseInfiniteQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "enabled": true,
-          "queryFn": [Function],
-          "queryKey": Array [
-            "posts",
-            Object {
-              "after": "",
-              "first": 10,
-            },
-          ],
-          "suspense": true,
-        },
+        Array [
+          Object {
+            "enabled": true,
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+            "suspense": true,
+          },
+        ],
       ]
     `);
   });
 
   it('should call useInfiniteQuery with default query options and options from last argument', () => {
     const useGetPosts = getPosts.createUseInfiniteQuery({ cacheTime: 1000 });
-    useGetPosts({ after: '', first: 10 }, { meta: { type: 'test' } });
+    useGetPosts({ meta: { type: 'test' } });
 
-    expect((useInfiniteQuery as jest.Mock).mock.calls[0])
-      .toMatchInlineSnapshot(`
+    expect(mockUseInfiniteQuery.mock.calls).toMatchInlineSnapshot(`
       Array [
-        Object {
-          "cacheTime": 1000,
-          "meta": Object {
-            "type": "test",
-          },
-          "queryFn": [Function],
-          "queryKey": Array [
-            "posts",
-            Object {
-              "after": "",
-              "first": 10,
+        Array [
+          Object {
+            "cacheTime": 1000,
+            "meta": Object {
+              "type": "test",
             },
-          ],
-        },
+            "queryFn": [Function],
+            "queryKey": Array [
+              "posts",
+            ],
+          },
+        ],
       ]
     `);
   });
@@ -199,7 +196,7 @@ describe('createUseIsFetching', () => {
     const useGetPostByIdIsFetching = getPostById.createUseIsFetching();
     useGetPostByIdIsFetching(1);
 
-    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+    expect(mockUseIsFetching.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Array [
@@ -216,7 +213,7 @@ describe('createUseIsFetching', () => {
     const useGetPostByIdIsFetching = getPostById.createUseIsFetching();
     useGetPostByIdIsFetching(1, { exact: true });
 
-    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+    expect(mockUseIsFetching.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Array [
@@ -237,7 +234,7 @@ describe('createUseIsFetching', () => {
     });
     useGetPostByIdIsFetching(1, { exact: true });
 
-    expect((useIsFetching as jest.Mock).mock.calls).toMatchInlineSnapshot(`
+    expect(mockUseIsFetching.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Array [
@@ -255,86 +252,116 @@ describe('createUseIsFetching', () => {
 });
 
 describe('fetchQuery', () => {
-  let spy: jest.SpyInstance;
-
-  beforeEach(() => {
-    spy = jest.spyOn(queryClient, 'fetchQuery');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
-
   it('should call QueryClient.fetchQuery with baseQueryKey and queryFn', () => {
-    getPosts.fetchQuery();
+    const spy = jest.spyOn(queryClient, 'fetchQuery');
 
+    expect(getPostById.fetchQuery(1)).resolves.toMatchInlineSnapshot(`
+      Object {
+        "id": 1,
+        "title": "Post#1",
+      }
+    `);
     expect(spy.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Object {
             "queryFn": [Function],
             "queryKey": Array [
-              "posts",
+              "post",
+              1,
             ],
           },
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 
   it('should call QueryClient.fetchQuery with baseQueryKey and queryFn and fetchOptions', () => {
-    getPosts.fetchQuery(undefined, { staleTime: 1000 });
+    const spy = jest.spyOn(queryClient, 'fetchQuery');
 
+    expect(getPostById.fetchQuery(2, { staleTime: 1000 })).resolves
+      .toMatchInlineSnapshot(`
+      Object {
+        "id": 2,
+        "title": "Post#2",
+      }
+    `);
     expect(spy.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Object {
             "queryFn": [Function],
             "queryKey": Array [
-              "posts",
-              undefined,
+              "post",
+              2,
             ],
             "staleTime": 1000,
           },
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 });
 
 describe('fetchInfiniteQuery', () => {
-  let spy: jest.SpyInstance;
+  it('should call QueryClient.fetchInfiniteQuery with baseQueryKey and queryFn', () => {
+    const spy = jest.spyOn(queryClient, 'fetchInfiniteQuery');
 
-  beforeEach(() => {
-    spy = jest.spyOn(queryClient, 'fetchInfiniteQuery');
-  });
+    expect(getPostById.fetchInfiniteQuery(1)).resolves.toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Object {
+            "id": 1,
+            "title": "Post#1",
+          },
+        ],
+      }
+    `);
 
-  afterEach(() => {
+    expect(spy.mock.calls).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Object {
+            "behavior": Object {
+              "onFetch": [Function],
+            },
+            "queryFn": [Function],
+            "queryKey": Array [
+              "post",
+              1,
+            ],
+          },
+        ],
+      ]
+    `);
+
     spy.mockRestore();
   });
 
-  it('should call QueryClient.fetchInfiniteQuery with baseQueryKey and queryFn', () => {
-    getPosts.fetchInfiniteQuery();
-
-    expect(spy.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
-            "behavior": Object {
-              "onFetch": [Function],
-            },
-            "queryFn": [Function],
-            "queryKey": Array [
-              "posts",
-            ],
-          },
-        ],
-      ]
-    `);
-  });
-
   it('should call QueryClient.fetchInfiniteQuery with baseQueryKey and queryFn and fetchOptions', () => {
-    getPosts.fetchInfiniteQuery(undefined, { staleTime: 1000 });
+    const spy = jest.spyOn(queryClient, 'fetchInfiniteQuery');
+
+    expect(getPostById.fetchInfiniteQuery(2, { cacheTime: 1000 })).resolves
+      .toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Object {
+            "id": 2,
+            "title": "Post#2",
+          },
+        ],
+      }
+    `);
 
     expect(spy.mock.calls).toMatchInlineSnapshot(`
       Array [
@@ -343,31 +370,25 @@ describe('fetchInfiniteQuery', () => {
             "behavior": Object {
               "onFetch": [Function],
             },
+            "cacheTime": 1000,
             "queryFn": [Function],
             "queryKey": Array [
-              "posts",
-              undefined,
+              "post",
+              2,
             ],
-            "staleTime": 1000,
           },
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 });
 
 describe('prefetchQuery', () => {
-  let spy: jest.SpyInstance;
-
-  beforeEach(() => {
-    spy = jest.spyOn(queryClient, 'prefetchQuery');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
-
   it('should call QueryClient.prefetchQuery with baseQueryKey and queryFn', () => {
+    const spy = jest.spyOn(queryClient, 'prefetchQuery');
+
     getPosts.prefetchQuery();
 
     expect(spy.mock.calls).toMatchInlineSnapshot(`
@@ -382,10 +403,14 @@ describe('prefetchQuery', () => {
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 
   it('should call QueryClient.prefetchQuery with baseQueryKey and queryFn and fetchOptions', () => {
-    getPosts.prefetchQuery(undefined, { staleTime: 1000 });
+    const spy = jest.spyOn(queryClient, 'prefetchQuery');
+
+    getPosts.prefetchQuery({ staleTime: 1000 });
 
     expect(spy.mock.calls).toMatchInlineSnapshot(`
       Array [
@@ -394,28 +419,20 @@ describe('prefetchQuery', () => {
             "queryFn": [Function],
             "queryKey": Array [
               "posts",
-              undefined,
             ],
             "staleTime": 1000,
           },
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 });
 
 describe('prefetchInfiniteQuery', () => {
-  let spy: jest.SpyInstance;
-
-  beforeEach(() => {
-    spy = jest.spyOn(queryClient, 'prefetchInfiniteQuery');
-  });
-
-  afterEach(() => {
-    spy.mockRestore();
-  });
-
   it('should call QueryClient.prefetchInfiniteQuery with baseQueryKey and queryFn', () => {
+    const spy = jest.spyOn(queryClient, 'prefetchInfiniteQuery');
     getPosts.prefetchInfiniteQuery();
 
     expect(spy.mock.calls).toMatchInlineSnapshot(`
@@ -433,10 +450,13 @@ describe('prefetchInfiniteQuery', () => {
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 
   it('should call QueryClient.prefetchInfiniteQuery with baseQueryKey and queryFn and fetchOptions', () => {
-    getPosts.prefetchInfiniteQuery(undefined, { staleTime: 1000 });
+    const spy = jest.spyOn(queryClient, 'prefetchInfiniteQuery');
+    getPosts.prefetchInfiniteQuery({ staleTime: 1000 });
 
     expect(spy.mock.calls).toMatchInlineSnapshot(`
       Array [
@@ -448,13 +468,14 @@ describe('prefetchInfiniteQuery', () => {
             "queryFn": [Function],
             "queryKey": Array [
               "posts",
-              undefined,
             ],
             "staleTime": 1000,
           },
         ],
       ]
     `);
+
+    spy.mockRestore();
   });
 });
 
@@ -496,15 +517,20 @@ describe('getQueryData', () => {
 
 describe('getInfiniteQueryData', () => {
   it('should get access infinite query data', async () => {
-    await getPosts.prefetchInfiniteQuery(undefined, { cacheTime: 1 });
+    await getPosts.prefetchInfiniteQuery();
 
-    expect(getPosts.getInfiniteQueryData(undefined)).toMatchInlineSnapshot(`
+    expect(getPosts.getInfiniteQueryData()).toMatchInlineSnapshot(`
       Object {
         "pageParams": Array [
           undefined,
         ],
         "pages": Array [
-          Array [],
+          Array [
+            Object {
+              "id": 1,
+              "title": "Foo",
+            },
+          ],
         ],
       }
     `);
@@ -513,9 +539,9 @@ describe('getInfiniteQueryData', () => {
 
 describe('getQueriesData', () => {
   beforeEach(async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
-    await getPostById.prefetchQuery(2, { cacheTime: 1 });
-    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
+    await getPostById.prefetchQuery(2);
+    await getPostById.prefetchQuery(3);
   });
 
   it('should get all queries what matching with baseQueryKey', () => {
@@ -530,11 +556,33 @@ describe('getQueriesData', () => {
   });
 });
 
+describe('getInfiniteQueriesData', () => {
+  beforeEach(async () => {
+    await getPostsWithFilter.prefetchQuery({ type: 'id' });
+    await getPostsWithFilter.prefetchQuery({ type: 'name' });
+    await getPostsWithFilter.prefetchQuery({ type: 'title' });
+  });
+
+  it('should get all queries what matching with baseQueryKey', () => {
+    expect(getPostsWithFilter.getInfiniteQueriesData().length).toBe(3);
+  });
+
+  it('should get queries what matching with filter', () => {
+    const queryFilterPredicate = (query: Query) =>
+      (query.queryKey[1] as any).type !== 'id';
+    expect(
+      getPostsWithFilter.getInfiniteQueriesData({
+        predicate: queryFilterPredicate,
+      }).length
+    ).toBe(2);
+  });
+});
+
 describe('setQueryData', () => {
   it('should set posts query data', () => {
     expect(getPosts.getQueryData()).toMatchInlineSnapshot(`undefined`);
 
-    getPosts.setQueryData(undefined, [
+    getPosts.setQueryData([
       { id: 1, title: 'foo' },
       { id: 2, title: 'bar' },
     ]);
@@ -554,7 +602,7 @@ describe('setQueryData', () => {
   });
 
   it('should set posts query data as function', () => {
-    getPosts.setQueryData(undefined, [{ id: 1, title: 'foo' }]);
+    getPosts.setQueryData([{ id: 1, title: 'foo' }]);
 
     expect(getPosts.getQueryData(undefined)).toMatchInlineSnapshot(`
       Array [
@@ -565,7 +613,7 @@ describe('setQueryData', () => {
       ]
     `);
 
-    getPosts.setQueryData(undefined, (oldData) => {
+    getPosts.setQueryData((oldData) => {
       if (!oldData) {
         return [];
       }
@@ -596,7 +644,7 @@ describe('setInfiniteQueryData', () => {
   it('should set posts infinite query data', () => {
     expect(getPosts.getQueryData()).toMatchInlineSnapshot(`undefined`);
 
-    getPosts.setInfiniteQueryData(undefined, {
+    getPosts.setInfiniteQueryData({
       pageParams: [],
       pages: [[{ id: 1, title: 'foo' }], [{ id: 2, title: 'bar' }]],
     });
@@ -623,7 +671,7 @@ describe('setInfiniteQueryData', () => {
   });
 
   it('should set posts infinite query data as function', () => {
-    getPosts.setInfiniteQueryData(undefined, {
+    getPosts.setInfiniteQueryData({
       pageParams: [],
       pages: [[{ id: 1, title: 'foo' }], [{ id: 2, title: 'bar' }]],
     });
@@ -648,7 +696,7 @@ describe('setInfiniteQueryData', () => {
       }
     `);
 
-    getPosts.setInfiniteQueryData(undefined, (data) => ({
+    getPosts.setInfiniteQueryData((data) => ({
       pages: [...data!.pages, [{ id: 3, title: 'baz' }]],
       pageParams: data!.pageParams,
     }));
@@ -683,7 +731,7 @@ describe('setInfiniteQueryData', () => {
 
 describe('getQueryState', () => {
   it('should return current query state', async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
 
     expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
       Object {
@@ -709,9 +757,9 @@ describe('getQueryState', () => {
 
 describe('setQueriesData', () => {
   beforeEach(async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
-    await getPostById.prefetchQuery(2, { cacheTime: 1 });
-    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
+    await getPostById.prefetchQuery(2);
+    await getPostById.prefetchQuery(3);
   });
 
   it('should update each queries data', () => {
@@ -741,11 +789,93 @@ describe('setQueriesData', () => {
   });
 });
 
+describe('setInfiniteQueriesData', () => {
+  beforeEach(async () => {
+    await getPostsWithFilter.prefetchInfiniteQuery({ type: 'id' });
+    await getPostsWithFilter.prefetchInfiniteQuery({ type: 'name' });
+    await getPostsWithFilter.prefetchInfiniteQuery({ type: 'title' });
+  });
+
+  it('should update each queries data', () => {
+    getPostsWithFilter.setInfiniteQueriesData((cache) => ({
+      pageParams: cache!.pageParams,
+      pages: [...cache!.pages, [{ id: 999, title: 'Modified Post' }]],
+    }));
+
+    expect(getPostsWithFilter.getInfiniteQueryData({ type: 'id' }))
+      .toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "Foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 999,
+              "title": "Modified Post",
+            },
+          ],
+        ],
+      }
+    `);
+    expect(getPostsWithFilter.getInfiniteQueryData({ type: 'name' }))
+      .toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "Foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 999,
+              "title": "Modified Post",
+            },
+          ],
+        ],
+      }
+    `);
+    expect(getPostsWithFilter.getInfiniteQueryData({ type: 'title' }))
+      .toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [
+          undefined,
+        ],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "Foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 999,
+              "title": "Modified Post",
+            },
+          ],
+        ],
+      }
+    `);
+  });
+});
+
 describe('invalidateQueries', () => {
   beforeEach(async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
-    await getPostById.prefetchQuery(2, { cacheTime: 1 });
-    await getPostById.prefetchQuery(3, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
+    await getPostById.prefetchQuery(2);
+    await getPostById.prefetchQuery(3);
   });
 
   it('should invalidate all queries', () => {
@@ -768,8 +898,8 @@ describe('invalidateQueries', () => {
 
 describe('refetchQueries', () => {
   beforeEach(async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
-    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
+    await getPostById.prefetchQuery(2);
   });
 
   it('should refetch all queries', async () => {
@@ -794,7 +924,7 @@ describe('refetchQueries', () => {
 
 describe('cancelQueries', () => {
   it('should cancel all queries', async () => {
-    getPostById.fetchQuery(1, { cacheTime: 1 });
+    getPostById.fetchQuery(1);
     expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
       Object {
         "data": undefined,
@@ -832,8 +962,8 @@ describe('cancelQueries', () => {
   });
 
   it('should cancel queries what matching by filter', async () => {
-    getPostById.fetchQuery(1, { cacheTime: 1 });
-    getPostById.fetchQuery(2, { cacheTime: 1 });
+    getPostById.fetchQuery(1);
+    getPostById.fetchQuery(2);
     expect(getPostById.getQueryState(1)).toMatchInlineSnapshot(`
       Object {
         "data": undefined,
@@ -910,7 +1040,7 @@ describe('cancelQueries', () => {
 
 describe('removeQueries', () => {
   it('should remove all queries', async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
     expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
       Object {
         "id": 1,
@@ -923,8 +1053,8 @@ describe('removeQueries', () => {
   });
 
   it('should remove queries what matching by filter', async () => {
-    await getPostById.prefetchQuery(1, { cacheTime: 1 });
-    await getPostById.prefetchQuery(2, { cacheTime: 1 });
+    await getPostById.prefetchQuery(1);
+    await getPostById.prefetchQuery(2);
     expect(getPostById.getQueryData(1)).toMatchInlineSnapshot(`
       Object {
         "id": 1,
@@ -1023,11 +1153,24 @@ describe('isFetching', () => {
   });
 
   it('should return a count of queries that currently fetching', () => {
-    getPostById.prefetchQuery(1, { cacheTime: 1 });
-    getPostById.prefetchQuery(2, { cacheTime: 1 });
-    getPostById.prefetchQuery(3, { cacheTime: 1 });
+    getPostById.prefetchQuery(1);
+    getPostById.prefetchQuery(2);
+    getPostById.prefetchQuery(3);
 
     const predicate = (query: Query) => query.queryKey[1] !== 1;
     expect(getPostById.isFetching({ predicate })).toEqual(2);
+  });
+});
+
+describe('withQueryClient', () => {
+  it('should use other queryClient via withQueryClient method', async () => {
+    const otherQueryClient = new QueryClient({
+      defaultOptions: { queries: { cacheTime: 1 } },
+    });
+    await getPostById.prefetchQuery(1);
+    await getPostById.withQueryClient(otherQueryClient).prefetchQuery(2);
+
+    expect(queryClient.getQueryCache().getAll().length).toBe(1);
+    expect(otherQueryClient.getQueryCache().getAll().length).toBe(1);
   });
 });
