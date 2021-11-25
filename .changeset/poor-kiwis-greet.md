@@ -1,5 +1,5 @@
 ---
-'react-query-helper': minor
+'react-query-helper': patch
 ---
 
 Refactor into makeQueryHelper
