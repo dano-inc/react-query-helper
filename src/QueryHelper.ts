@@ -2,6 +2,7 @@ import {
   CancelOptions,
   FetchInfiniteQueryOptions,
   FetchQueryOptions,
+  InfiniteData,
   InvalidateQueryFilters,
   QueryClient,
   QueryFunctionContext,
@@ -229,6 +230,18 @@ export class QueryHelper<
     const queryClient = this.getQueryClient();
 
     return queryClient.setQueryData(this.getQueryKey(queryFnArgs), updater);
+  }
+
+  setInfiniteQueryData(
+    ...args: [
+      ...queryFnArgs: TQueryFnArgs,
+      updater: Updater<
+        InfiniteData<TQueryFnResult> | undefined,
+        InfiniteData<TQueryFnResult>
+      >
+    ]
+  ) {
+    return this.setQueryData(...(args as any)) as InfiniteData<TQueryFnResult>;
   }
 
   getQueryState(

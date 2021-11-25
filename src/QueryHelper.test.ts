@@ -575,6 +575,95 @@ describe('setQueryData', () => {
   });
 });
 
+describe('setInfiniteQueryData', () => {
+  it('should set posts infinite query data', () => {
+    expect(getPosts.getQueryData()).toMatchInlineSnapshot(`undefined`);
+
+    getPosts.setInfiniteQueryData(undefined, {
+      pageParams: [],
+      pages: [[{ id: 1, title: 'foo' }], [{ id: 2, title: 'bar' }]],
+    });
+
+    expect(getPosts.getQueryData(undefined)).toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 2,
+              "title": "bar",
+            },
+          ],
+        ],
+      }
+    `);
+  });
+
+  it('should set posts infinite query data as function', () => {
+    getPosts.setInfiniteQueryData(undefined, {
+      pageParams: [],
+      pages: [[{ id: 1, title: 'foo' }], [{ id: 2, title: 'bar' }]],
+    });
+
+    expect(getPosts.getQueryData(undefined)).toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 2,
+              "title": "bar",
+            },
+          ],
+        ],
+      }
+    `);
+
+    getPosts.setInfiniteQueryData(undefined, (data) => ({
+      pages: [...data!.pages, [{ id: 3, title: 'baz' }]],
+      pageParams: data!.pageParams,
+    }));
+
+    expect(getPosts.getQueryData(undefined)).toMatchInlineSnapshot(`
+      Object {
+        "pageParams": Array [],
+        "pages": Array [
+          Array [
+            Object {
+              "id": 1,
+              "title": "foo",
+            },
+          ],
+          Array [
+            Object {
+              "id": 2,
+              "title": "bar",
+            },
+          ],
+          Array [
+            Object {
+              "id": 3,
+              "title": "baz",
+            },
+          ],
+        ],
+      }
+    `);
+  });
+});
+
 describe('getQueryState', () => {
   it('should return current query state', async () => {
     await getPostById.prefetchQuery(1, { cacheTime: 1 });
