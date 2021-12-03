@@ -1,24 +1,11 @@
-import type {
-  CancelOptions,
-  FetchInfiniteQueryOptions,
-  FetchQueryOptions,
-  InfiniteData,
-  InvalidateQueryFilters,
-  QueryFunctionContext,
-  RefetchOptions,
-  RefetchQueryFilters,
-  ResetOptions,
-  SetDataOptions,
-  UseInfiniteQueryOptions,
-  UseQueryOptions,
-} from 'react-query';
 import {
   QueryClient,
+  QueryFunctionContext,
   useInfiniteQuery,
   useIsFetching,
   useQuery,
 } from 'react-query';
-import { QueryFilters, Updater } from 'react-query/types/core/utils';
+import { TypedQueryClient } from './types';
 
 type Awaited<T> = T extends Promise<infer U>
   ? U extends Promise<unknown>
@@ -42,290 +29,102 @@ export const makeQueryHelper = <
   type TQueryFnArgs = Parameters<ReturnType<TQueryFn>>;
   type TQueryFnResult = Awaited<ReturnType<ReturnType<TQueryFn>>>;
 
-  const queryFnArgsLength = queryFn({
-    meta: undefined,
-    queryKey: baseQueryKey,
-  }).length;
+  // @ts-expect-error
+  const queryFnArgsLength = queryFn().length;
 
-  const getQueryKey = (queryFnArgs: TQueryFnArgs) => [
-    ...baseQueryKey,
-    ...queryFnArgs,
-  ];
-
-  const getQueryFn =
-    (queryFnArgs: TQueryFnArgs) => (context: QueryFunctionContext) =>
-      queryFn.call(null, context).apply(null, queryFnArgs) as TQueryFnResult;
-
-  const splitArgs = <TRestArgs extends unknown[]>(
-    args: unknown[]
-  ): [TQueryFnArgs, TRestArgs] => {
-    const queryFnArgs = args.slice(0, queryFnArgsLength) as TQueryFnArgs;
-    const restArgs = args.slice(queryFnArgsLength) as TRestArgs;
+  const splitArgs = (args: any[]) => {
+    const queryFnArgs = args.slice(0, queryFnArgsLength);
+    const restArgs = args.slice(queryFnArgsLength);
 
     return [queryFnArgs, restArgs];
   };
+  const getQueryKey = (queryFnArgs: any[]) => [...baseQueryKey, ...queryFnArgs];
+  const getQueryFn = (queryFnArgs: any[]) => (context: QueryFunctionContext) =>
+    queryFn.call(null, context).apply(null, queryFnArgs);
 
-  const queryHelper = (queryClient: QueryClient) => ({
-    createUseQuery(
-      defaultUseQueryOptions: UseQueryOptions<TQueryFnResult> = {}
-    ) {
-      return (
-        ...args: [
-          ...queryFnArgs: TQueryFnArgs,
-          options?: UseQueryOptions<TQueryFnResult>
-        ]
-      ) => {
-        const [queryFnArgs, [options]] =
-          splitArgs<[UseQueryOptions<TQueryFnResult>]>(args);
-
-        return useQuery({
-          queryKey: getQueryKey(queryFnArgs),
-          queryFn: getQueryFn(queryFnArgs),
-          ...defaultUseQueryOptions,
-          ...options,
-        });
-      };
-    },
-
-    createUseInfiniteQuery(
-      defaultUseInfiniteQueryOptions: UseInfiniteQueryOptions<TQueryFnResult> = {}
-    ) {
-      return (
-        ...args: [
-          ...queryFnArgs: TQueryFnArgs,
-          options?: UseInfiniteQueryOptions<TQueryFnResult>
-        ]
-      ) => {
-        const [queryFnArgs, [options]] =
-          splitArgs<[UseInfiniteQueryOptions<TQueryFnResult>]>(args);
-
-        return useInfiniteQuery({
-          queryKey: getQueryKey(queryFnArgs),
-          queryFn: getQueryFn(queryFnArgs),
-          ...defaultUseInfiniteQueryOptions,
-          ...options,
-        });
-      };
-    },
-
-    createUseIsFetching(defaultUseIsFetchingFilters: QueryFilters = {}) {
-      return (
-        ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
-      ) => {
-        const [queryFnArgs, [filters]] = splitArgs<[QueryFilters?]>(args);
-
-        return useIsFetching(getQueryKey(queryFnArgs), {
-          ...defaultUseIsFetchingFilters,
-          ...filters,
-        });
-      };
-    },
-
-    fetchQuery(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        options?: FetchQueryOptions<TQueryFnResult>
-      ]
-    ) {
-      const [queryFnArgs, [options]] =
-        splitArgs<[FetchQueryOptions<TQueryFnResult>]>(args);
-
-      return queryClient.fetchQuery({
+  const makeHookHandler =
+    (hook: any) =>
+    (...args: any[]) => {
+      const [queryFnArgs, [options]] = splitArgs(args);
+      return hook({
         queryKey: getQueryKey(queryFnArgs),
         queryFn: getQueryFn(queryFnArgs),
         ...options,
       });
+    };
+
+  const baseQueryHelper: Pick<
+    TypedQueryClient,
+    'withQueryClient' | 'useIsFetching' | 'useQuery' | 'useInfiniteQuery'
+  > = {
+    useInfiniteQuery: makeHookHandler(useInfiniteQuery),
+    useQuery: makeHookHandler(useQuery),
+    useIsFetching: (...args) => {
+      const [queryFnArgs, [filters]] = splitArgs(args);
+      return useIsFetching(getQueryKey(queryFnArgs), { ...filters });
     },
+    withQueryClient: (queryClient: QueryClient) => getQueryHelper(queryClient),
+  };
 
-    fetchInfiniteQuery(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        options?: FetchInfiniteQueryOptions<TQueryFnResult>
-      ]
-    ) {
-      const [queryFnArgs, [options]] =
-        splitArgs<[FetchInfiniteQueryOptions<TQueryFnResult>]>(args);
+  const getQueryHelper = (queryClient: QueryClient) => {
+    return new Proxy(baseQueryHelper, {
+      get(target: any, property: any) {
+        if (typeof target[property] !== 'undefined') {
+          return target[property];
+        }
 
-      return queryClient.fetchInfiniteQuery({
-        queryKey: getQueryKey(queryFnArgs),
-        queryFn: getQueryFn(queryFnArgs),
-        ...options,
-      });
-    },
+        return (...args: any[]) => {
+          const [queryFnArgs, restArgs] = splitArgs(args);
+          const queryKey = getQueryKey(queryFnArgs);
 
-    prefetchQuery(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        options?: FetchQueryOptions<TQueryFnResult>
-      ]
-    ) {
-      const [queryFnArgs, [options]] =
-        splitArgs<[FetchQueryOptions<TQueryFnResult>]>(args);
+          const originalPropertyMap: any = {
+            setInfiniteQueriesData: 'setQueriesData',
+            getInfiniteQueriesData: 'getQueriesData',
+            getInfiniteQueryData: 'getQueryData',
+            setInfiniteQueryData: 'setQueryData',
+          };
 
-      return queryClient.prefetchQuery({
-        queryKey: getQueryKey(queryFnArgs),
-        queryFn: getQueryFn(queryFnArgs),
-        ...options,
-      });
-    },
+          let property$ = originalPropertyMap[property] || property;
 
-    prefetchInfiniteQuery(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        options?: FetchInfiniteQueryOptions<TQueryFnResult>
-      ]
-    ) {
-      const [queryFnArgs, [options]] =
-        splitArgs<[FetchInfiniteQueryOptions<TQueryFnResult>]>(args);
+          switch (property$) {
+            case 'fetchQuery':
+            case 'prefetchQuery':
+            case 'fetchInfiniteQuery':
+            case 'prefetchInfiniteQuery':
+              return (queryClient as any)[property$]({
+                queryKey,
+                queryFn: getQueryFn(queryFnArgs),
+                ...restArgs[0],
+              });
+            case 'getQueryData':
+            case 'getQueryState':
+              return (queryClient as any)[property$]({
+                queryKey,
+                ...restArgs[0],
+              });
+            case 'setQueryData':
+              return (queryClient as any)[property$](queryKey, ...restArgs);
+            case 'setQueriesData':
+            case 'invalidateQueries':
+            case 'refetchQueries':
+            case 'cancelQueries':
+            case 'removeQueries':
+            case 'resetQueries':
+            case 'isFetching':
+              return (queryClient as any)[property$](baseQueryKey, ...args);
+            case 'getQueriesData':
+              return (queryClient as any)[property$](args[0] || { queryKey });
+            default:
+              return target[property$];
+          }
+        };
+      },
+    });
+  };
 
-      return queryClient.prefetchInfiniteQuery({
-        queryKey: getQueryKey(queryFnArgs),
-        queryFn: getQueryFn(queryFnArgs),
-        ...options,
-      });
-    },
-
-    getQueryData(
-      ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
-    ) {
-      const [queryFnArgs, [filters]] = splitArgs<[QueryFilters]>(args);
-
-      return queryClient.getQueryData<TQueryFnResult>(
-        getQueryKey(queryFnArgs),
-        filters
-      );
-    },
-
-    getInfiniteQueryData(
-      ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
-    ) {
-      const [queryFnArgs, [filters]] = splitArgs<[QueryFilters]>(args);
-
-      return queryClient.getQueryData<InfiniteData<TQueryFnResult>>(
-        getQueryKey(queryFnArgs),
-        filters
-      );
-    },
-
-    getQueriesData(filters?: QueryFilters) {
-      return queryClient.getQueriesData<TQueryFnResult>(
-        filters || (baseQueryKey as any)
-      );
-    },
-
-    getInfiniteQueriesData(filters?: QueryFilters) {
-      return queryClient.getQueriesData<InfiniteData<TQueryFnResult>>(
-        filters || (baseQueryKey as any)
-      );
-    },
-
-    setQueryData(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        updater: Updater<TQueryFnResult | undefined, TQueryFnResult>,
-        options?: SetDataOptions
-      ]
-    ) {
-      const [queryFnArgs, [updater, options]] =
-        splitArgs<
-          [Updater<TQueryFnResult | undefined, TQueryFnResult>, SetDataOptions?]
-        >(args);
-
-      return queryClient.setQueryData(
-        getQueryKey(queryFnArgs),
-        updater,
-        options
-      );
-    },
-
-    setInfiniteQueryData(
-      ...args: [
-        ...queryFnArgs: TQueryFnArgs,
-        updater: Updater<
-          InfiniteData<TQueryFnResult> | undefined,
-          InfiniteData<TQueryFnResult>
-        >,
-        options?: SetDataOptions
-      ]
-    ) {
-      const [queryFnArgs, [updater, options]] =
-        splitArgs<
-          [
-            Updater<
-              InfiniteData<TQueryFnResult> | undefined,
-              InfiniteData<TQueryFnResult>
-            >,
-            SetDataOptions?
-          ]
-        >(args);
-
-      return queryClient.setQueryData(
-        getQueryKey(queryFnArgs),
-        updater,
-        options
-      );
-    },
-
-    getQueryState(
-      ...args: [...queryFnArgs: TQueryFnArgs, filters?: QueryFilters]
-    ) {
-      const [queryFnArgs, [filters]] = splitArgs<[QueryFilters]>(args);
-
-      return queryClient.getQueryState<TQueryFnResult>(
-        getQueryKey(queryFnArgs),
-        filters
-      );
-    },
-
-    setQueriesData(
-      updater: Updater<TQueryFnResult | undefined, TQueryFnResult>,
-      options?: SetDataOptions
-    ) {
-      return queryClient.setQueriesData(baseQueryKey, updater, options);
-    },
-
-    setInfiniteQueriesData(
-      updater: Updater<
-        InfiniteData<TQueryFnResult> | undefined,
-        InfiniteData<TQueryFnResult>
-      >,
-      options?: SetDataOptions
-    ) {
-      return queryClient.setQueriesData(baseQueryKey, updater, options);
-    },
-
-    invalidateQueries(filters?: InvalidateQueryFilters<TQueryFnResult>) {
-      return queryClient.invalidateQueries(baseQueryKey, filters);
-    },
-
-    refetchQueries(filters?: RefetchQueryFilters, options?: RefetchOptions) {
-      return queryClient.refetchQueries<TQueryFnResult>(
-        baseQueryKey,
-        filters,
-        options
-      );
-    },
-
-    cancelQueries(filters?: QueryFilters, options?: CancelOptions) {
-      return queryClient.cancelQueries(baseQueryKey, filters, options);
-    },
-
-    removeQueries(filters?: QueryFilters) {
-      return queryClient.removeQueries(baseQueryKey, filters);
-    },
-
-    resetQueries(filters?: QueryFilters, options?: ResetOptions) {
-      return queryClient.resetQueries(baseQueryKey, filters, options);
-    },
-
-    isFetching(filters?: QueryFilters) {
-      return queryClient.isFetching(baseQueryKey, filters);
-    },
-
-    withQueryClient(queryClient: QueryClient) {
-      return queryHelper(queryClient);
-    },
-  });
-
-  return queryHelper(queryClient);
+  return getQueryHelper(queryClient) as TypedQueryClient<
+    TQueryFnArgs,
+    TQueryFnResult,
+    Error
+  >;
 };
