@@ -1,6 +1,6 @@
 {
   "name": "react-query-helper",
-  "description": "A helper library to use react-query more efficient, consistency",
+  "description": "A helper library to help you use React Query more easily and consistently.",
   "license": "MIT",
   "keywords": [
     "react-query",
