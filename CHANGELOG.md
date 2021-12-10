@@ -1,5 +1,11 @@
 # react-query-helper
 
+## 0.1.0
+
+### Minor Changes
+
+- 6e94de4: Reimplement makeQueryHelper
+
 ## 0.0.12
 
 ### Patch Changes
